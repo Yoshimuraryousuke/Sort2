@@ -1,0 +1,48 @@
+template < class RandomIter >
+/*!
+    \param first 
+    \param last 
+*/
+inline void quick_sort_openmp(RandomIter first, RandomIter last)
+{
+#pragma omp parallel    // OpenMP並列領域
+#pragma omp single      
+    quick_sort_openmp(first, last, 0);
+}
+
+template < class RandomIter >
+/*!
+    \param first 
+    \param last 
+    \param reci 現在の再帰の深さ
+*/
+void quick_sort_openmp(RandomIter first, RandomIter last, std::int32_t reci)
+{
+   
+    auto const num = std::distance(first, last);
+
+    if (num <= 1) {
+        return;
+    }
+
+    reci++;
+
+    if (num >= THRESHOLD && reci <= NUMPHYSICALCORE) {
+        auto const middle = std::partition(first + 1, last, [first](auto n) { return n < *first; });
+
+        auto const mid = middle - 1;
+
+        std::iter_swap(first, mid);
+
+#pragma omp task
+        quick_sort_openmp(first, mid, reci);
+
+#pragma omp task
+        quick_sort_openmp(middle, last, reci);
+
+#pragma omp taskwait
+    }
+    else {
+        quick_sort(first, last);
+    }
+}
