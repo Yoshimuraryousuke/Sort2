@@ -1,0 +1,51 @@
+template < class RandomIter >
+/*!
+    \param first 
+    \param last 
+*/
+void quick_sort(RandomIter first, RandomIter last)
+{
+    using mypair = std::pair< RandomIter, RandomIter >;
+
+    std::stack< mypair, std::vector< mypair > > stack;
+
+    stack.push(std::make_pair(first, last - 1));
+
+    while (!stack.empty()) {
+        RandomIter left, right;
+        std::tie(left, right) = stack.top();
+        stack.pop();
+
+        auto i = left;
+        auto j = right;
+        auto const pivot = (*left + *right) / 2;
+
+        while (i <= j) {
+            while (*i < pivot) {
+                ++i;
+            }
+
+            while (*j > pivot) {
+                --j;
+            }
+
+            if (i <= j) {
+                std::iter_swap(i, j);
+
+                ++i;
+
+                if (j != first) {
+                    --j;
+                }
+            }
+        }
+
+        if (left < j) {
+            stack.push(std::make_pair(left, j));
+        }
+
+        if (i < right) {
+            stack.push(std::make_pair(i, right));
+        }
+    }
+}
